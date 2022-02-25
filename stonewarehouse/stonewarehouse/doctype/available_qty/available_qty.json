@@ -1,0 +1,113 @@
+{
+ "creation": "2020-03-30 10:50:13.987461",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "warehouse",
+  "batch_no",
+  "lot_no",
+  "item_code",
+  "item_name",
+  "total_qty",
+  "picked_qty",
+  "available_qty",
+  "picked_in_current",
+  "remaining"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "batch_no.lot_no",
+   "fieldname": "lot_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Lot No",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "total_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Qty",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "picked_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Picked Qty",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "available_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Available Qty",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "picked_in_current",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Picked In Current",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "remaining",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Remaining",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Warehouse",
+   "options": "Warehouse"
+  }
+ ],
+ "istable": 1,
+ "modified": "2020-03-30 12:47:53.377695",
+ "modified_by": "Administrator",
+ "module": "Stonewarehouse",
+ "name": "Available Qty",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

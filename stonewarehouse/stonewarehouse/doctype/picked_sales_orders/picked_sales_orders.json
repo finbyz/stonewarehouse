@@ -1,0 +1,236 @@
+{
+ "creation": "2020-03-30 10:56:58.900676",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "item_code",
+  "date",
+  "delivery_date",
+  "order_rank",
+  "item_name",
+  "column_break_2",
+  "description",
+  "section_break_5",
+  "warehouse",
+  "quantity_section",
+  "picked_qty",
+  "column_break_11",
+  "uom",
+  "serial_no_and_batch_section",
+  "serial_no",
+  "column_break_20",
+  "batch_no",
+  "lot_no",
+  "column_break_15",
+  "sales_order",
+  "sales_order_item",
+  "pick_list",
+  "pick_list_item",
+  "so_picked_percent",
+  "unpick_qty",
+  "unpick_item"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "item_code.description",
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "read_only": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantity_section",
+   "fieldtype": "Section Break",
+   "label": "Quantity",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "picked_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Picked Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break",
+   "read_only": 1
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "serial_no_and_batch_section",
+   "fieldtype": "Section Break",
+   "label": "Serial No and Batch",
+   "read_only": 1
+  },
+  {
+   "depends_on": "serial_no",
+   "fieldname": "serial_no",
+   "fieldtype": "Small Text",
+   "label": "Serial No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_20",
+   "fieldtype": "Column Break",
+   "read_only": 1
+  },
+  {
+   "depends_on": "batch_no",
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_15",
+   "fieldtype": "Section Break",
+   "label": "Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_order_item",
+   "fieldtype": "Data",
+   "label": "Sales Order Item",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "unpick_item",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Unpick Item"
+  },
+  {
+   "fieldname": "pick_list",
+   "fieldtype": "Link",
+   "label": "Pick List",
+   "options": "Pick List",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pick_list_item",
+   "fieldtype": "Data",
+   "label": "Pick List Item",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "batch_no.lot_no",
+   "fieldname": "lot_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Lot No",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "unpick_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Unpick Qty"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "so_picked_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "SO Picked Percent",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "order_rank",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Order Rank"
+  }
+ ],
+ "istable": 1,
+ "modified": "2020-07-06 11:30:40.200003",
+ "modified_by": "Administrator",
+ "module": "Stonewarehouse",
+ "name": "Picked Sales Orders",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

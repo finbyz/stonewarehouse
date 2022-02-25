@@ -1,0 +1,159 @@
+{
+ "actions": [],
+ "creation": "2020-06-25 19:22:15.516785",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item",
+  "packing_type",
+  "qty",
+  "real_qty",
+  "rate",
+  "discounted_rate",
+  "column_break_10",
+  "sales_order",
+  "sales_order_item",
+  "picked_qty",
+  "delivered_without_pick",
+  "delivered_qty",
+  "wastage_qty",
+  "delivered_real_qty",
+  "batch_no",
+  "view_detail"
+ ],
+ "fields": [
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "sales_order_item",
+   "fieldtype": "Data",
+   "label": "Sales Order Item",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Qty",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "real_qty",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Real Qty"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "rate",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Rate",
+   "permlevel": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "discounted_rate",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Discounted Rate",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.sales_order_item",
+   "fieldname": "view_detail",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "View Detail"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "picked_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Picked Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  },
+  {
+   "default": "0",
+   "fieldname": "delivered_qty",
+   "fieldtype": "Float",
+   "label": "Delivered qty",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "wastage_qty",
+   "fieldtype": "Float",
+   "label": "Wastage qty",
+   "reqd": 1
+  },
+  {
+   "fieldname": "delivered_real_qty",
+   "fieldtype": "Float",
+   "label": "Delivered Real Qty",
+   "reqd": 1
+  },
+  {
+   "fieldname": "packing_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Packing Type",
+   "options": "Packing Type"
+  },
+  {
+   "default": "0",
+   "fieldname": "delivered_without_pick",
+   "fieldtype": "Float",
+   "label": "Delivered Without Pick",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-11-10 16:40:56.596973",
+ "modified_by": "Administrator",
+ "module": "Stonewarehouse",
+ "name": "Sales Order Item Pick List",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

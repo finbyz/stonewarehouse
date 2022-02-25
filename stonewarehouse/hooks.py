@@ -103,6 +103,63 @@ app_license = "MIT"
 #	}
 # }
 
+
+doctype_list_js = {
+	"Pick List" : "public/js/doctype_js/pick_list_list.js",
+}
+
+override_doctype_dashboards = {
+	"Sales Order": "stonewarehouse.stonewarehouse.dashboard.sales_order.get_data",
+	"Pick List": "stonewarehouse.stonewarehouse.dashboard.pick_list.get_data",
+}
+
+doc_events = {
+	"Sales Order": {
+		"before_validate": [
+			"stonewarehouse.stonewarehouse.doc_events.sales_order.before_validate"
+		],
+		"validate": [
+			"stonewarehouse.stonewarehouse.doc_events.sales_order.validate"
+		],
+		"on_submit": "stonewarehouse.stonewarehouse.doc_events.sales_order.on_submit",
+		"before_validate_after_submit": "stonewarehouse.stonewarehouse.doc_events.sales_order.before_validate_after_submit",
+		"before_update_after_submit": "stonewarehouse.stonewarehouse.doc_events.sales_order.before_update_after_submit",
+		"on_update_after_submit": "stonewarehouse.stonewarehouse.doc_events.sales_order.on_update_after_submit",
+		"on_cancel": "stonewarehouse.stonewarehouse.doc_events.sales_order.on_cancel",
+	},
+	"Pick List": {
+		"validate": "stonewarehouse.stonewarehouse.doc_events.pick_list.validate",
+		"before_submit": "stonewarehouse.stonewarehouse.doc_events.pick_list.before_submit",
+		"on_submit": "stonewarehouse.stonewarehouse.doc_events.pick_list.on_submit",
+		"on_cancel": "stonewarehouse.stonewarehouse.doc_events.pick_list.on_cancel",
+		"before_update_after_submit": "stonewarehouse.stonewarehouse.doc_events.pick_list.before_update_after_submit"
+	},
+	"Delivery Note": {
+		"before_validate": [
+			"stonewarehouse.stonewarehouse.doc_events.delivery_note.before_validate", 
+		],
+		"validate": [
+			"stonewarehouse.stonewarehouse.doc_events.delivery_note.validate"
+		],
+		"before_submit": "stonewarehouse.stonewarehouse.doc_events.delivery_note.before_submit",
+		"on_submit": "stonewarehouse.stonewarehouse.doc_events.delivery_note.on_submit",
+		"on_cancel": "stonewarehouse.stonewarehouse.doc_events.delivery_note.on_cancel",
+	}
+}
+
+scheduler_events = {
+	"daily": [
+		"stonewarehouse.stonewarehouse.doc_events.sales_order.schedule_daily",
+	]
+}
+
+from stonewarehouse.override_default_class_method import set_item_locations
+from erpnext.stock.doctype.pick_list.pick_list import PickList
+PickList.set_item_locations = set_item_locations
+
+
+
+
 # Scheduled Tasks
 # ---------------
 
