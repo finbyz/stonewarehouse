@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include stonewarehouse *.css
+recursive-include stonewarehouse *.csv
+recursive-include stonewarehouse *.html
+recursive-include stonewarehouse *.ico
+recursive-include stonewarehouse *.js
+recursive-include stonewarehouse *.json
+recursive-include stonewarehouse *.md
+recursive-include stonewarehouse *.png
+recursive-include stonewarehouse *.py
+recursive-include stonewarehouse *.svg
+recursive-include stonewarehouse *.txt
+recursive-exclude stonewarehouse *.pyc
