@@ -348,7 +348,6 @@ def make_delivery_note(source_name, target_doc=None, skip_item_mapping=False):
 							'pl_detail': pick_doc.name,
 							'warehouse': warehouse,
 							'batch_no': pick_doc.batch_no,
-							'lot_no': pick_doc.lot_no,
 							'picked_qty': pick_doc.qty - pick_doc.delivered_qty
 						})
 

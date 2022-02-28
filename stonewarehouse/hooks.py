@@ -103,6 +103,10 @@ app_license = "MIT"
 #	}
 # }
 
+doctype_js = {
+	"Sales Order": "public/js/doctype_js/sales_order.js",
+	"Pick List": "public/js/doctype_js/pick_list.js",
+}
 
 doctype_list_js = {
 	"Pick List" : "public/js/doctype_js/pick_list_list.js",

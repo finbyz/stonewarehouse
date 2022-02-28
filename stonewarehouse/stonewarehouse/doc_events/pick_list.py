@@ -123,7 +123,6 @@ def update_available_qty(self):
 		self.append('available_qty',{
 			'item_code': item.item_code,
 			'batch_no': item.batch_no,
-			'lot_no': item.lot_no,
 			'total_qty': item.total_qty,
 			'picked_qty': item.picked_qty,
 			'available_qty': item.available_qty,
@@ -140,7 +139,7 @@ def update_available_qty(self):
 		i.remaining -= qty
 
 		if i.remaining < 0:
-			frappe.throw(_(f"Remaining Qty Cannot be less than 0 ({i.remaining}) for item {i.item_code} and lot {i.lot_no}"))
+			frappe.throw(_(f"Remaining Qty Cannot be less than 0 ({i.remaining}) for item {i.item_code} and batch {i.batch_no}"))
 	
 def update_remaining_qty(self):
 	sales_order_item_list = list(set([row.sales_order_item for row in self.locations]))
@@ -281,7 +280,6 @@ def get_item_qty(company, item_code = None, customer = None, sales_order = None)
 			SELECT
 				sle.`item_code`,
 				sle.`batch_no`,
-				batch.`lot_no`,
 				SUM(sle.`actual_qty`) AS `actual_qty`
 			FROM
 				`tabStock Ledger Entry` sle, `tabBatch` batch
@@ -371,7 +369,7 @@ def get_item_from_sales_order(company, item_code = None, customer = None, sales_
 	for item in item_codes:
 		sales_order_list += frappe.db.sql(f"""
 			SELECT 
-				so.name as sales_order, soi.delivered_without_pick, so.customer, so.transaction_date, so.delivery_date, soi.packing_type as packing_type, so.per_picked, so.order_item_priority, so.order_rank,
+				so.name as sales_order, soi.delivered_without_pick, so.customer, so.transaction_date, so.delivery_date, so.per_picked, so.order_item_priority, so.order_rank,
 				soi.name as sales_order_item, soi.item_code, soi.picked_qty, soi.qty - soi.delivered_without_pick - soi.picked_qty as qty, soi.qty as so_qty, soi.uom, soi.stock_qty, soi.stock_uom, soi.conversion_factor
 			FROM
 				`tabSales Order Item` as soi JOIN 
@@ -392,10 +390,10 @@ def get_item_from_sales_order(company, item_code = None, customer = None, sales_
 def get_pick_list_so(sales_order, item_code, sales_order_item):
 	pick_list_list = frappe.db.sql(f"""
 		SELECT 
-			pli.sales_order, pli.sales_order_item, pli.customer, pli.name as pick_list_item, batch.packing_type,
+			pli.sales_order, pli.sales_order_item, pli.customer, pli.name as pick_list_item,
 			pli.date, pli.item_code, pli.qty, pli.qty - pli.delivered_qty - pli.wastage_qty as picked_qty, pli.delivered_qty, pli.wastage_qty,
 			pli.delivered_qty, pli.batch_no,
-			pli.lot_no, pli.uom, pli.stock_qty, pli.stock_uom,
+			pli.batch_no, pli.uom, pli.stock_qty, pli.stock_uom,
 			pli.conversion_factor, pli.name, pli.parent
 		FROM
 			`tabPick List Item` as pli
@@ -543,7 +541,7 @@ def unpick_item(sales_order, sales_order_item = None, pick_list = None, pick_lis
 				available_qty = actual_qty - pick_list_available + doc.qty
 				
 				if available_qty < doc.qty - unpick_qty:
-					frappe.throw(f"Qty can not be greater than available qty {available_qty} in Lot {doc.lot_no}")
+					frappe.throw(f"Qty can not be greater than available qty {available_qty} in Batch {doc.batch_no}")
 				original_picked = doc.qty
 				doc.db_set('qty', doc.qty - unpick_qty)
 				soi_doc.db_set('picked_qty', flt(soi_doc.picked_qty) - flt(unpick_qty))
@@ -677,8 +675,6 @@ def get_items(filters):
 		SELECT
 			sle.`item_code`,
 			sle.`batch_no`,
-			batch.lot_no,
-			batch.packing_type,
 			SUM(sle.`actual_qty`) AS `actual_qty`
 		FROM
 			`tabStock Ledger Entry` sle, `tabBatch` batch
@@ -737,7 +733,6 @@ def get_sales_order_items(sales_order):
 			'picked_qty': item.picked_qty + item.delivered_without_pick - item.delivered_qty,
 			'delivered_qty': item.delivered_qty,
 			'wastage_qty': item.wastage_qty,
-			'packing_type': item.packing_type,
 			'order_rank': doc.order_rank,
 			'delivered_without_pick': item.delivered_without_pick
 		})

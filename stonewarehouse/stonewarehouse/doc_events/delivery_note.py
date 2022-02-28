@@ -228,8 +228,8 @@ def wastage_stock_entry(self):
 	if flag == 1:
 		abbr = frappe.db.get_value('Company',self.company,'abbr')
 		se = frappe.new_doc("Stock Entry")
-		se.stock_entry_type = "Material Issue"
-		se.purpose = "Material Issue"
+		se.stock_entry_type = "Material Transfer"
+		se.purpose = "Material Transfer"
 		se.posting_date = self.posting_date
 		se.posting_time = self.posting_time
 		se.set_posting_time = 1
@@ -237,7 +237,11 @@ def wastage_stock_entry(self):
 		se.reference_doctype = self.doctype
 		se.reference_docname = self.name
 		se.wastage = 1
-	
+
+		rejected_warehouse = frappe.db.get_value("Company", se.company, "default_rejected_warehouse")
+		if not rejected_warehouse:
+			frappe.throw("Please Define Rejected Warehouse in Company")
+
 		for row in self.items:
 			if row.wastage_qty > 0:
 				se.append("items",{
@@ -245,7 +249,8 @@ def wastage_stock_entry(self):
 					'qty': row.wastage_qty,
 					'basic_rate': row.rate,
 					'batch_no': row.batch_no,
-					's_warehouse': row.warehouse
+					's_warehouse': row.warehouse,
+					't_warehouse': rejected_warehouse
 				})
 
 		se.save(ignore_permissions=True)
