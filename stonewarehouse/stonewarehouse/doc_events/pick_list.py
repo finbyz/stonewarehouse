@@ -482,14 +482,11 @@ def unpick_qty_comment(reference_name, sales_order, data):
 def unpick_item(sales_order, sales_order_item = None, pick_list = None, pick_list_item = None, unpick_qty = None, sales_order_differnce_qty = 0.0):
 	# if flt(unpick_qty) < 0:
 	# 	frappe.throw(_("Unpick qty cannot be negative"))
-	user = frappe.get_doc("User",frappe.session.user)
-	role_list = [r.role for r in user.roles]
 
 	if frappe.db.get_value("Sales Order",sales_order,'lock_picked_qty'):
-		dispatch_person_user = frappe.db.get_value("Sales Person",frappe.db.get_value("Sales Order",sales_order,'dispatch_person'),'user')
-		if dispatch_person_user:
-			if user.name != dispatch_person_user and 'Local Admin' not in role_list and 'Sales Head' not in role_list:
-				return "Only {} is allowed to unpick".format(dispatch_person_user)
+		if 'Sales Manager' not in frappe.get_roles():
+			return "Only Sales Manager is allowed to unpick"
+
 	if pick_list_item and pick_list:
 		unpick_qty = flt(unpick_qty)
 		doc = frappe.get_doc("Pick List Item", pick_list_item)

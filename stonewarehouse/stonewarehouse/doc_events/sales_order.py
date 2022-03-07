@@ -98,13 +98,10 @@ def delete_pick_list(self):
 	for item in pick_list_list:
 		pl = frappe.get_doc("Pick List Item", item.name)
 		if not frappe.db.exists("Sales Order Item", pl.sales_order_item):
-			user = frappe.get_doc("User",frappe.session.user)
-			role_list = [r.role for r in user.roles]
 			if frappe.db.get_value("Sales Order",self.name,'lock_picked_qty'):
-				dispatch_person_user = frappe.db.get_value("Sales Person",frappe.db.get_value("Sales Order",self.name,'dispatch_person'),'user')
-				if dispatch_person_user:
-					if user.name != dispatch_person_user and 'Local Admin' not in role_list and 'Sales Head' not in role_list:
-						frappe.throw("Only {} is allowed to unpick".format(dispatch_person_user))
+				if 'Sales Manager' not in frappe.get_roles():
+					frappe.throw("Only Sales Manager is allowed to unpick")
+
 			if pl.docstatus == 1:
 				pl.cancel()
 				unpick_qty_comment(pl.parent,self.name, f"Unpicked full Qty from item {pl.item_code}")

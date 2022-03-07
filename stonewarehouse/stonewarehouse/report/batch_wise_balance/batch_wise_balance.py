@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
+from multiprocessing import Condition
 
 import frappe, datetime
 from frappe import _
@@ -15,11 +16,13 @@ def execute(filters=None):
 	columns = get_columns(filters)
 	item_pick_map = get_picked_qty(filters,float_precision)
 	iwb_map = get_item_warehouse_batch_map(filters, float_precision)
+	item_price_map = get_standard_selling_price(filters, float_precision)
 	conditions = ''
 	if filters.get("to_date"):
 		conditions += " AND pl.posting_date <= '%s'" % filters["to_date"]
 	
 	data = []
+
 	if filters.get('warehouse'):
 		for item in sorted(iwb_map):
 			if not filters.get("item") or filters.get("item") == item:
@@ -32,6 +35,8 @@ def execute(filters=None):
 						except KeyError:
 							picked_qty = 0.0
 							unlocked_qty = 0.0
+						
+
 						# frappe.db.sql(f"""
 						# SELECT sum(pli.qty - (pli.wastage_qty + pli.delivered_qty)) FROM `tabPick List Item` as pli JOIN `tabPick List` as pl on pli.parent = pl.name 
 						# WHERE pli.item_code = '{item}' AND pli.batch_no='{batch}' and pl.docstatus = 1 {conditions} AND pl.company = '{filters.get('company')}'
@@ -46,6 +51,16 @@ def execute(filters=None):
 								so_picked_qty = frappe.db.get_value("Pick List Item", {'sales_order': filters.sales_order, 'item_code': item, 'batch_no': batch}, 'sum(qty - delivered_qty - wastage_qty)') or 0.0
 							else:
 								so_picked_qty = 0.0
+							
+							# try:									
+							# 	po_quantity = item_po_quantity_map.get((item, wh)) or 0
+							# 	if po_quantity and not item_po_qty_map.get((item, wh)):
+							# 		item_po_qty_map[item, wh] = True
+							# 	else:
+							# 		po_quantity = 0
+							# except:
+							# 	po_quantity = 0
+
 							data.append({
 								'item_code': item,
 								'balance_qty': flt(qty_dict.bal_qty, float_precision),
@@ -61,9 +76,18 @@ def execute(filters=None):
 								'image': qty_dict.image,
 								'so_picked_qty': so_picked_qty,
 								'warehouse': wh,
-								'company': frappe.db.get_value("Warehouse",wh,"company")
+								'company': frappe.db.get_value("Warehouse",wh,"company"),
+								'po_quantity':0
 							})
+
+
 	else:
+		item_po_quantity_map = get_po_quantity(filters, float_precision)
+		item_po_qty_map = {}
+
+		projected_qty_map = get_projected_qty(filters, float_precision)
+		item_projected_qty_map = {}
+
 		for item in iwb_map:
 			if not filters.get("item") or filters.get("item") == item:
 				for batch in sorted(iwb_map[item]):
@@ -88,6 +112,32 @@ def execute(filters=None):
 							so_picked_qty = frappe.db.get_value("Pick List Item", {'sales_order': filters.sales_order, 'item_code': item, 'batch_no': batch}, 'sum(qty - delivered_qty - wastage_qty)') or 0.0
 						else:
 							so_picked_qty = 0.0
+						
+						try:
+							standard_selling_price = item_price_map.get(item).get("price_list_rate") or 0
+							currency = item_price_map.get(item).get("currency")
+						except:
+							standard_selling_price = 0
+							currency = "INR"
+
+						try:
+							po_quantity = item_po_quantity_map.get(item) or 0
+							if po_quantity and not item_po_qty_map.get(item):
+								item_po_qty_map[item] = True
+							else:
+								po_quantity = 0
+						except:
+							po_quantity = 0
+
+						try:
+							projected_qty = projected_qty_map.get(item) or 0
+							if projected_qty and not item_projected_qty_map.get(item):
+								item_projected_qty_map[item] = True
+							else:
+								projected_qty = 0
+						except:
+							projected_qty = 0
+
 						data.append({
 							'item_code': item,
 							'balance_qty': flt(qty_dict.bal_qty, float_precision),
@@ -101,9 +151,19 @@ def execute(filters=None):
 							'batch_no': batch,
 							'item_group': qty_dict.item_group,
 							'image': qty_dict.image,
-							'so_picked_qty': so_picked_qty
+							'so_picked_qty': so_picked_qty,
+							'standard_selling_price': standard_selling_price,
+							'currency': currency,
+							"po_quantity": po_quantity,
+							"projected_qty": projected_qty
 						})
 
+	if filters.get("warehouse"):
+		po_details_data = get_po_details(filters, float_precision)
+		if po_details_data:
+			data.extend(po_details_data)
+
+		data = sorted(data, key = lambda i: (i.get('item_code'))) 
 
 	return columns, data
 
@@ -114,7 +174,7 @@ def get_columns(filters):
 		{
 			"label": _("Item Code"),
 			"fieldname": "item_code",
-			"fieldtype": "link",
+			"fieldtype": "Link",
 			"options": "Item",
 			"width": 250
 		},	
@@ -148,13 +208,53 @@ def get_columns(filters):
 				"width": 80
 			},
 			{
+				"label": _("PO Qty"),
+				"fieldname": "po_quantity",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("Projected Qty"),
+				"fieldname": "projected_qty",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
 				"label": _("Details"),
 				"fieldname": "picked_detail",
 				"fieldtype": "Data",
 				"width": 70
 			},
 		]
-		
+	else:
+		columns += [
+			{
+				"label": _("PO Qty"),
+				"fieldname": "po_quantity",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("Required By Date"),
+				"fieldname": "po_required_by_date",
+				"fieldtype": "Date",
+				"width": 100
+			},
+			{
+				"label": _("Purchase Order"),
+				"fieldname": "po_name",
+				"fieldtype": "Link",
+				"options": "Purchase Order",
+				"width": 170,
+			},
+			{
+				"label": _("Sales Order"),
+				"fieldname": "so_name",
+				"fieldtype": "Link",
+				"options": "Sales Order",
+				"width": 170,
+			},
+		]
 	if filters.get('sales_order'):
 		columns += [
 		{
@@ -165,6 +265,16 @@ def get_columns(filters):
 			"default": 0
 		}
 	]
+
+	if not filters.get('warehouse'):
+		columns += [
+			{
+				"label": _("Selling Price"),
+				"fieldname": "standard_selling_price",
+				"fieldtype": "Currency",
+				"width": 100
+			},
+		]
 
 	columns += [
 		{
@@ -204,6 +314,7 @@ def get_columns(filters):
 		columns +=[
 			{"label": _("Warehouse"), "fieldname": "warehouse", "fieldtype": "Link", "width": 120,"options": "Warehouse"},
 		]
+
 
 	return columns
 
@@ -426,3 +537,68 @@ def get_picked_item(item_code, batch_no, company, from_date, to_date, bal_qty, t
 	
 	
 	return picked_item
+
+def get_standard_selling_price(filters, float_precision):
+	item_price_map = {}
+	data = frappe.db.sql("""
+		select
+			item_code, price_list_rate, currency
+		from 
+			`tabItem Price`
+		where
+			price_list = 'Standard Selling' and selling = 1
+		group by item_code
+		order by creation desc
+	""",as_dict= True)
+
+	for item in data:
+		item_price_map[item.item_code] = item
+	
+	return item_price_map
+
+def get_po_quantity(filters, float_precision):
+	item_po_quantity_map = {}
+
+	data = frappe.db.sql(f"""
+		select
+			qty, item_code
+		from
+			`tabPurchase Order Item`
+		where
+			docstatus = 1
+		group by item_code
+	""", as_dict= True)
+
+	for po in data:
+		item_po_quantity_map[po.item_code] = po.qty
+
+	return item_po_quantity_map
+
+def get_projected_qty(filters, float_precision):
+	data = frappe.db.sql("""
+		select
+			item_code, sum(projected_qty) as projected_qty
+		from
+			`tabBin`
+		group by item_code
+	""", as_dict= True)
+	
+	projected_qty_map = {}
+	for row in data:
+		projected_qty_map[row.item_code] = row.projected_qty
+	
+	return projected_qty_map
+
+def get_po_details(filters, float_precision):
+	data = frappe.db.sql("""
+		select
+			item_code, qty as po_quantity, schedule_date as po_required_by_date, parent as po_name, sales_order as so_name
+		from
+			`tabPurchase Order Item`
+		where
+			docstatus = 1
+		order by idx
+	""", as_dict= True)
+
+		
+	return data

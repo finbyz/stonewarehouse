@@ -257,7 +257,7 @@ $.extend(cur_frm.cscript, new erpnext.selling.SalesOrderController({ frm: cur_fr
 
 frappe.ui.form.on('Sales Order', {
 	lotwise_balance: function(frm){
-		window.open(window.location.href.split('app')[0] + "app/query-report/Lot-Wise Balance" + "/?" + "company="+ frm.doc.company + "&" + "sales_order=" + frm.doc.name,"_blank")
+		window.open(window.location.href.split('app')[0] + "app/query-report/Batch-Wise Balance" + "/?" + "company="+ frm.doc.company + "&" + "sales_order=" + frm.doc.name,"_blank")
 	},
 
 	before_save: function (frm) {

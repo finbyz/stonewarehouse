@@ -75,13 +75,10 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 			for picked_item in frappe.get_all("Pick List Item", {'sales_order':child_item.parent, 'sales_order_item':child_item.name}):
 				pl = frappe.get_doc("Pick List Item", picked_item.name)
 
-				user = frappe.get_doc("User",frappe.session.user)
-				role_list = [r.role for r in user.roles]
 				if frappe.db.get_value("Sales Order",child_item.parent,'lock_picked_qty'):
-					dispatch_person_user = frappe.db.get_value("Sales Person",frappe.db.get_value("Sales Order",child_item.parent,'dispatch_person'),'user')
-					if dispatch_person_user:
-						if user.name != dispatch_person_user and 'Local Admin' not in role_list and 'Sales Head' not in role_list:
-							frappe.throw("Only {} is allowed to unpick".format(dispatch_person_user))
+					if 'Sales Manager' not in frappe.get_roles():
+						frappe.throw("Only Sales Manager is allowed to unpick")
+
 				pl.cancel()
 				pl.delete()
 			
@@ -106,7 +103,6 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 		else:
 			child_item.rate = flt(d.get("rate"))
 		child_item.item_code = d.get('item_code')
-		
 		
 		if flt(child_item.price_list_rate):
 			if flt(child_item.rate) > flt(child_item.price_list_rate):
@@ -147,8 +143,6 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 			comment_doc.content = f" changed Row: {child_item.idx}" + comment
 
 			comment_doc.save()
-
-
 
 	parent.reload()
 	parent.flags.ignore_validate_update_after_submit = True
