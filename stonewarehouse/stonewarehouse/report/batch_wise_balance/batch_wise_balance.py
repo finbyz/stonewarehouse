@@ -17,9 +17,13 @@ def execute(filters=None):
 	item_pick_map = get_picked_qty(filters,float_precision)
 	iwb_map = get_item_warehouse_batch_map(filters, float_precision)
 	item_price_map = get_standard_selling_price(filters, float_precision)
+	projected_qty_map = get_projected_qty(filters, float_precision)
+
+	item_projected_qty_map, item_warehouse_map = {}, {}
 	conditions = ''
+
 	if filters.get("to_date"):
-		conditions += " AND pl.posting_date <= '%s'" % filters["to_date"]
+			conditions += " AND pl.posting_date <= '%s'" % filters["to_date"]
 	
 	data = []
 
@@ -36,6 +40,7 @@ def execute(filters=None):
 							picked_qty = 0.0
 							unlocked_qty = 0.0
 						
+						item_warehouse_map[(item, wh)] = True 
 
 						# frappe.db.sql(f"""
 						# SELECT sum(pli.qty - (pli.wastage_qty + pli.delivered_qty)) FROM `tabPick List Item` as pli JOIN `tabPick List` as pl on pli.parent = pl.name 
@@ -61,6 +66,18 @@ def execute(filters=None):
 							# except:
 							# 	po_quantity = 0
 
+							try:
+								standard_selling_price = item_price_map.get(item).get("price_list_rate") or 0
+								currency = item_price_map.get(item).get("currency")
+							except:
+								standard_selling_price = 0
+								currency = "INR"
+
+							try:
+								projected_qty = projected_qty_map.get((item,wh)) or 0
+							except:
+								projected_qty = 0
+
 							data.append({
 								'item_code': item,
 								'balance_qty': flt(qty_dict.bal_qty, float_precision),
@@ -75,18 +92,18 @@ def execute(filters=None):
 								'item_group': qty_dict.item_group,
 								'image': qty_dict.image,
 								'so_picked_qty': so_picked_qty,
+								'standard_selling_price': standard_selling_price,
+								'currency': currency,
+								"projected_qty": projected_qty,
 								'warehouse': wh,
 								'company': frappe.db.get_value("Warehouse",wh,"company"),
 								'po_quantity':0
 							})
 
-
 	else:
-		item_po_quantity_map = get_po_quantity(filters, float_precision)
-		item_po_qty_map = {}
+		# item_po_quantity_map = get_po_quantity(filters, float_precision)
+		# item_po_qty_map = {}
 
-		projected_qty_map = get_projected_qty(filters, float_precision)
-		item_projected_qty_map = {}
 
 		for item in iwb_map:
 			if not filters.get("item") or filters.get("item") == item:
@@ -120,14 +137,14 @@ def execute(filters=None):
 							standard_selling_price = 0
 							currency = "INR"
 
-						try:
-							po_quantity = item_po_quantity_map.get(item) or 0
-							if po_quantity and not item_po_qty_map.get(item):
-								item_po_qty_map[item] = True
-							else:
-								po_quantity = 0
-						except:
-							po_quantity = 0
+						# try:
+						# 	po_quantity = item_po_quantity_map.get(item) or 0
+						# 	if po_quantity and not item_po_qty_map.get(item):
+						# 		item_po_qty_map[item] = True
+						# 	else:
+						# 		po_quantity = 0
+						# except:
+						# 	po_quantity = 0
 
 						try:
 							projected_qty = projected_qty_map.get(item) or 0
@@ -154,169 +171,26 @@ def execute(filters=None):
 							'so_picked_qty': so_picked_qty,
 							'standard_selling_price': standard_selling_price,
 							'currency': currency,
-							"po_quantity": po_quantity,
 							"projected_qty": projected_qty
 						})
 
 	if filters.get("warehouse"):
 		po_details_data = get_po_details(filters, float_precision)
 		if po_details_data:
+			for row in po_details_data:
+				item_warehouse_map[(row.item_code, row.warehouse)] = True
 			data.extend(po_details_data)
-
+		
+		for item_wh, projected_qty in projected_qty_map.items():
+			if item_wh not in item_warehouse_map:
+				data.append({
+					"item_code": item_wh[0],
+					"warehouse": item_wh[1],
+					"projected_qty": projected_qty
+				})
 		data = sorted(data, key = lambda i: (i.get('item_code'))) 
 
 	return columns, data
-
-def get_columns(filters):
-	"""return columns based on filters"""
-
-	columns = [
-		{
-			"label": _("Item Code"),
-			"fieldname": "item_code",
-			"fieldtype": "Link",
-			"options": "Item",
-			"width": 250
-		},	
-		{
-			"label": _("Balance Qty"),
-			"fieldname": "balance_qty",
-			"fieldtype": "Float",
-			"width": 80
-		},
-		{
-			"label": _("Unlocked Qty"),
-			"fieldname": "unlocked_qty",
-			"fieldtype": "Float",
-			"width": 80
-		},
-		
-		
-	]
-	if not filters.get('warehouse'):
-		columns += [
-			{
-				"label": _("Picked Qty"),
-				"fieldname": "picked_qty",
-				"fieldtype": "Float",
-				"width": 80
-			},
-			{
-				"label": _("Remaining Qty"),
-				"fieldname": "remaining_qty",
-				"fieldtype": "Float",
-				"width": 80
-			},
-			{
-				"label": _("PO Qty"),
-				"fieldname": "po_quantity",
-				"fieldtype": "Float",
-				"width": 80
-			},
-			{
-				"label": _("Projected Qty"),
-				"fieldname": "projected_qty",
-				"fieldtype": "Float",
-				"width": 80
-			},
-			{
-				"label": _("Details"),
-				"fieldname": "picked_detail",
-				"fieldtype": "Data",
-				"width": 70
-			},
-		]
-	else:
-		columns += [
-			{
-				"label": _("PO Qty"),
-				"fieldname": "po_quantity",
-				"fieldtype": "Float",
-				"width": 80
-			},
-			{
-				"label": _("Required By Date"),
-				"fieldname": "po_required_by_date",
-				"fieldtype": "Date",
-				"width": 100
-			},
-			{
-				"label": _("Purchase Order"),
-				"fieldname": "po_name",
-				"fieldtype": "Link",
-				"options": "Purchase Order",
-				"width": 170,
-			},
-			{
-				"label": _("Sales Order"),
-				"fieldname": "so_name",
-				"fieldtype": "Link",
-				"options": "Sales Order",
-				"width": 170,
-			},
-		]
-	if filters.get('sales_order'):
-		columns += [
-		{
-			"label": _("Sales Order Picked Qty"),
-			"fieldname": "so_picked_qty",
-			"fieldtype": "Float",
-			"width": 70,
-			"default": 0
-		}
-	]
-
-	if not filters.get('warehouse'):
-		columns += [
-			{
-				"label": _("Selling Price"),
-				"fieldname": "standard_selling_price",
-				"fieldtype": "Currency",
-				"width": 100
-			},
-		]
-
-	columns += [
-		{
-			"label": _("Batch"),
-			"fieldname": "batch_no",
-			"fieldtype": "Link",
-			"options": "Batch",
-			"width": 100
-		},
-		{
-			"label": _("Item Group"),
-			"fieldname": "item_group",
-			"fieldtype": "Link",
-			"options": "Item Group",
-			"width": 180
-		},
-		{
-			"label": _("Opening Qty"),
-			"fieldname": "opening_qty",
-			"fieldtype": "Float",
-			"width": 80
-		},
-		{
-			"label": _("In Qty"),
-			"fieldname": "in_qty",
-			"fieldtype": "Float",
-			"width": 80
-		},
-		{
-			"label": _("Out Qty"),
-			"fieldname": "out_qty",
-			"fieldtype": "Float",
-			"width": 80
-		},
-	]
-	if filters.get('warehouse'):
-		columns +=[
-			{"label": _("Warehouse"), "fieldname": "warehouse", "fieldtype": "Link", "width": 120,"options": "Warehouse"},
-		]
-
-
-	return columns
 
 
 def get_conditions(filters):
@@ -561,11 +435,11 @@ def get_po_quantity(filters, float_precision):
 
 	data = frappe.db.sql(f"""
 		select
-			qty, item_code
+			sum(qty - received_qty) as qty, item_code
 		from
 			`tabPurchase Order Item`
 		where
-			docstatus = 1
+			docstatus = 1 and qty > received_qty
 		group by item_code
 	""", as_dict= True)
 
@@ -575,30 +449,204 @@ def get_po_quantity(filters, float_precision):
 	return item_po_quantity_map
 
 def get_projected_qty(filters, float_precision):
-	data = frappe.db.sql("""
-		select
-			item_code, sum(projected_qty) as projected_qty
-		from
-			`tabBin`
-		group by item_code
-	""", as_dict= True)
-	
 	projected_qty_map = {}
-	for row in data:
-		projected_qty_map[row.item_code] = row.projected_qty
-	
+	if not filters.get("warehouse"):
+
+		default_order_warehouse = frappe.db.get_value("Company", filters.get('company'), 'default_order_warehouse')
+		if not default_order_warehouse:
+			frappe.throw("Please Define Default Order Warehouse in Company")
+
+		data = frappe.db.sql(f"""
+			select
+				item_code, sum(projected_qty) as projected_qty
+			from
+				`tabBin`
+			where
+				warehouse = '{default_order_warehouse}'
+			group by item_code, warehouse
+		""", as_dict= True)
+		
+		for row in data:
+			projected_qty_map[row.item_code] = row.projected_qty
+		
+	else:
+		data = frappe.db.sql(f"""
+			select
+				item_code, warehouse, projected_qty
+			from
+				`tabBin`
+			where
+				projected_qty != 0
+			group by item_code, warehouse
+		""", as_dict= True)
+		
+		for row in data:
+			projected_qty_map[(row.item_code, row.warehouse)] = row.projected_qty
+		
 	return projected_qty_map
 
 def get_po_details(filters, float_precision):
 	data = frappe.db.sql("""
 		select
-			item_code, qty as po_quantity, schedule_date as po_required_by_date, parent as po_name, sales_order as so_name
+			poi.item_code, (poi.qty - poi.received_qty) as po_quantity, poi.schedule_date as po_required_by_date,
+			poi.parent as po_name, poi.sales_order as so_name, poi.warehouse, poi.item_group,
+			IF(bin.projected_qty > 0, bin.projected_qty, 0) as projected_qty 
 		from
-			`tabPurchase Order Item`
+			`tabPurchase Order Item` as poi
+			JOIN `tabItem` as item on item.name = poi.item_code
+			LEFT JOIN `tabBin` as bin on bin.item_code = poi.item_code and bin.warehouse = poi.warehouse
 		where
-			docstatus = 1
-		order by idx
+			poi.docstatus = 1 and poi.qty > poi.received_qty and item.is_stock_item = 1
+		order by poi.idx
 	""", as_dict= True)
 
-		
 	return data
+
+
+def get_columns(filters):
+	"""return columns based on filters"""
+
+	columns = [
+		{
+			"label": _("Item Code"),
+			"fieldname": "item_code",
+			"fieldtype": "Link",
+			"options": "Item",
+			"width": 250
+		},	
+		{
+			"label": _("Selling Price"),
+			"fieldname": "standard_selling_price",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Balance Qty"),
+			"fieldname": "balance_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
+		{
+			"label": _("Unlocked Qty"),
+			"fieldname": "unlocked_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
+		
+		
+	]
+	if not filters.get('warehouse'):
+		columns += [
+			{
+				"label": _("Picked Qty"),
+				"fieldname": "picked_qty",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("Remaining Qty"),
+				"fieldname": "remaining_qty",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("Projected Qty"),
+				"fieldname": "projected_qty",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("Details"),
+				"fieldname": "picked_detail",
+				"fieldtype": "Data",
+				"width": 70
+			},
+		]
+	else:
+		columns += [
+			{
+				"label": _("Projected Qty"),
+				"fieldname": "projected_qty",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("Purchase Order"),
+				"fieldname": "po_name",
+				"fieldtype": "Link",
+				"options": "Purchase Order",
+				"width": 170,
+			},
+			{
+				"label": _("PO Qty"),
+				"fieldname": "po_quantity",
+				"fieldtype": "Float",
+				"width": 80
+			},
+			{
+				"label": _("PO ETA"),
+				"fieldname": "po_required_by_date",
+				"fieldtype": "Date",
+				"width": 100
+			},
+			{
+				"label": _("Sales Order"),
+				"fieldname": "so_name",
+				"fieldtype": "Link",
+				"options": "Sales Order",
+				"width": 170,
+			},
+		]
+	if filters.get('sales_order'):
+		columns += [
+		{
+			"label": _("Sales Order Picked Qty"),
+			"fieldname": "so_picked_qty",
+			"fieldtype": "Float",
+			"width": 70,
+			"default": 0
+		}
+	]
+
+
+	columns += [
+		{
+			"label": _("Batch"),
+			"fieldname": "batch_no",
+			"fieldtype": "Link",
+			"options": "Batch",
+			"width": 100
+		},
+		{
+			"label": _("Item Group"),
+			"fieldname": "item_group",
+			"fieldtype": "Link",
+			"options": "Item Group",
+			"width": 180
+		},
+		{
+			"label": _("Opening Qty"),
+			"fieldname": "opening_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
+		{
+			"label": _("In Qty"),
+			"fieldname": "in_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
+		{
+			"label": _("Out Qty"),
+			"fieldname": "out_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
+	]
+	if filters.get('warehouse'):
+		columns +=[
+			{"label": _("Warehouse"), "fieldname": "warehouse", "fieldtype": "Link", "width": 120,"options": "Warehouse"},
+		]
+
+
+	return columns

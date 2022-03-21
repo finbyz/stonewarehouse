@@ -93,7 +93,8 @@ frappe.query_reports["Batch-Wise Balance"] = {
 		{
 			"fieldname": "warehouse",
 			"label": __("Show Warehouse"),
-			"fieldtype": "Check"
+			"fieldtype": "Check",
+			"default":1
 		},
 	]
 }
