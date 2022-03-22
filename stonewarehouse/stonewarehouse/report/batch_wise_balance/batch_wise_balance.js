@@ -141,14 +141,14 @@ function get_picked_item_details(item_code, batch_no, company, from_date, to_dat
 						<td>{{ __(row['pick_list_link']) }}</td>
 						<td>{{ __(frappe.format(row['per_picked'], {'fieldtype': 'Percent'})) }}</td>
 						<td>{{ __(row['picked_qty']) }}</td>
-						<td><input type="float"  min="0" onkeypress="return (event.charCode == 8 || event.charCode == 0) ? null : event.charCode >= 48 && event.charCode <= 57" style="width:30px" id="{{ row['pick_list_item'] }}"></input></td>
+						<td><input type="float"  min="0" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 46) ? null : event.charCode >= 48 && event.charCode <= 57" style="width:30px" id="{{ row['pick_list_item'] }}"></input></td>
 						<td><button style="margin-left:5px;border:none;color: #fff; background-color: red; padding: 3px 5px;border-radius: 5px;" type="button" sales-order="{{ __(row['sales_order']) }}" sales-order-item="{{ __(row['sales_order_item']) }}" pick-list="{{ __(row['pick_list']) }}" pick-list-item="{{ __(row['pick_list_item']) }}" onClick=remove_picked_item_batch_wise(this.getAttribute("sales-order"),this.getAttribute("sales-order-item"),this.getAttribute("pick-list"),this.getAttribute("pick-list-item"),document.getElementById("{{ row['pick_list_item'] }}").value)>Unpick</button></td>
 					</tr>
 				{% } %}
 			</tbody>
 		</table>
 		{% endif %}`;
-
+// onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57"
 	// docudocument.getElementById("demo").innerHTML = item_code;
 
 	frappe.call({

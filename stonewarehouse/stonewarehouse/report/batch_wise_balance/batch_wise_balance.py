@@ -490,7 +490,7 @@ def get_po_details(filters, float_precision):
 		select
 			poi.item_code, (poi.qty - poi.received_qty) as po_quantity, poi.schedule_date as po_required_by_date,
 			poi.parent as po_name, poi.sales_order as so_name, poi.warehouse, poi.item_group,
-			IF(bin.projected_qty > 0, bin.projected_qty, 0) as projected_qty 
+			IF(bin.projected_qty != 0, bin.projected_qty, 0) as projected_qty 
 		from
 			`tabPurchase Order Item` as poi
 			JOIN `tabItem` as item on item.name = poi.item_code
@@ -532,23 +532,22 @@ def get_columns(filters):
 			"fieldtype": "Float",
 			"width": 80
 		},
-		
+		{
+			"label": _("Picked Qty"),
+			"fieldname": "picked_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
+		{
+			"label": _("Remaining Qty"),
+			"fieldname": "remaining_qty",
+			"fieldtype": "Float",
+			"width": 80
+		},
 		
 	]
 	if not filters.get('warehouse'):
 		columns += [
-			{
-				"label": _("Picked Qty"),
-				"fieldname": "picked_qty",
-				"fieldtype": "Float",
-				"width": 80
-			},
-			{
-				"label": _("Remaining Qty"),
-				"fieldname": "remaining_qty",
-				"fieldtype": "Float",
-				"width": 80
-			},
 			{
 				"label": _("Projected Qty"),
 				"fieldname": "projected_qty",
