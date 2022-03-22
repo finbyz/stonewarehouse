@@ -553,7 +553,8 @@ def get_columns(filters):
 				"label": _("Projected Qty"),
 				"fieldname": "projected_qty",
 				"fieldtype": "Float",
-				"width": 80
+				"width": 80,
+				"hidden": 1
 			},
 			{
 				"label": _("Details"),
@@ -568,7 +569,7 @@ def get_columns(filters):
 				"label": _("Projected Qty"),
 				"fieldname": "projected_qty",
 				"fieldtype": "Float",
-				"width": 80
+				"width": 80,
 			},
 			{
 				"label": _("Purchase Order"),
@@ -595,6 +596,7 @@ def get_columns(filters):
 				"fieldtype": "Link",
 				"options": "Sales Order",
 				"width": 170,
+				"hidden":1
 			},
 		]
 	if filters.get('sales_order'):
@@ -624,6 +626,10 @@ def get_columns(filters):
 			"options": "Item Group",
 			"width": 180
 		},
+	]
+
+	if not filters.get('warehouse'):
+		columns += [
 		{
 			"label": _("Opening Qty"),
 			"fieldname": "opening_qty",
