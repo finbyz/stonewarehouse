@@ -538,16 +538,16 @@ def get_columns(filters):
 			"fieldtype": "Float",
 			"width": 80
 		},
-		{
-			"label": _("Remaining Qty"),
-			"fieldname": "remaining_qty",
-			"fieldtype": "Float",
-			"width": 80
-		},
 		
 	]
 	if not filters.get('warehouse'):
 		columns += [
+			{
+				"label": _("Remaining Qty"),
+				"fieldname": "remaining_qty",
+				"fieldtype": "Float",
+				"width": 80
+			},
 			{
 				"label": _("Projected Qty"),
 				"fieldname": "projected_qty",
