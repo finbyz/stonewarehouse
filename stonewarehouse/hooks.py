@@ -102,7 +102,7 @@ app_license = "MIT"
 # 		"on_trash": "method"
 #	}
 # }
-
+fixtures = ["Custom Field"]
 doctype_js = {
 	"Sales Order": "public/js/doctype_js/sales_order.js",
 	"Pick List": "public/js/doctype_js/pick_list.js",

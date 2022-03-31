@@ -296,7 +296,7 @@ ItemSelector = Class.extend({
 					
 				],
 				in_place_edit: false,
-				// data: this.data,
+				data: this.data,
 				get_data: function() {
 					return this.data;
 				},
