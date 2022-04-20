@@ -494,7 +494,10 @@ def update_order_rank_(date, order_priority, company):
 		difference LIMIT 1
 	""")
 	if order_rank_tuple:
-		order_rank = order_rank_tuple[0][0] or 0
+		if order_rank_tuple[0]:
+			order_rank = order_rank_tuple[0][0] or 0
+		else:
+			order_rank = 0
 	else:
 		order_rank = 0
 
