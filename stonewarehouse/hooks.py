@@ -102,6 +102,10 @@ app_license = "MIT"
 # 		"on_trash": "method"
 #	}
 # }
+override_doctype_class = {
+    "Pick List": "stonewarehouse.override_default_class_method.CustomPickList"
+}
+
 fixtures = ["Custom Field"]
 doctype_js = {
 	"Sales Order": "public/js/doctype_js/sales_order.js",
