@@ -52,7 +52,7 @@ def execute_schedule_daily():
 
 
 def update_order_rank(self):
-	order_rank = frappe.db.sql(f"""
+	order_rank_tuple = frappe.db.sql(f"""
 		select
 			order_rank, ABS(order_item_priority - {self.order_item_priority}) as difference
 		from 
@@ -60,7 +60,14 @@ def update_order_rank(self):
 		WHERE
 			status not in ('Completed', 'Draft', 'Cancelled') AND order_rank > 0 HAVING difference > 0 
 		order by difference LIMIT 1
-	""")[0][0] or 0
+	""") or 0
+	if order_rank_tuple:
+		if order_rank_tuple[0]:
+			order_rank=order_rank_tuple[0][0]
+		else:
+			order_rank=0
+	else:
+		order_rank=0
 	self.db_set('order_rank', order_rank)
 
 def calculate_order_priority(self):
@@ -494,7 +501,10 @@ def update_order_rank_(date, order_priority, company):
 		difference LIMIT 1
 	""")
 	if order_rank_tuple:
-		order_rank = order_rank_tuple[0][0] or 0
+		if order_rank_tuple[0]:
+			order_rank = order_rank_tuple[0][0] or 0
+		else:
+			order_rank = 0
 	else:
 		order_rank = 0
 
