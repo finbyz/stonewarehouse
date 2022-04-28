@@ -161,9 +161,9 @@ scheduler_events = {
 	]
 }
 
-from stonewarehouse.override_default_class_method import set_item_locations
-from erpnext.stock.doctype.pick_list.pick_list import PickList
-PickList.set_item_locations = set_item_locations
+# from stonewarehouse.override_default_class_method import set_item_locations
+# from erpnext.stock.doctype.pick_list.pick_list import PickList
+# PickList.set_item_locations = set_item_locations
 
 
 
